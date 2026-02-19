@@ -1,0 +1,223 @@
+services:
+  # Prometheus
+  prom-server:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus-config.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - kafka-network
+    restart: always
+    
+  # ClickHouse
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: admin
+      CLICKHOUSE_PASSWORD: Admin123
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - kafka-network
+    restart: always
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
+    depends_on:
+      - clickhouse
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - kafka-network
+    restart: always
+
+  # Node Exporter
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - kafka-network
+    volumes:
+      - /:/host:ro
+    command:
+      - '--path.rootfs=/host'
+    restart: always
+
+  # JMX Exporter
+  # jmx-exporter-kafka-1:
+  #   image: bitnami/jmx-exporter:latest
+  #   container_name: jmx-exporter-kafka-1
+  #   ports:
+  #     - "5556:5556"
+  #   volumes:
+  #   - ./jmx/kafka-jmx.yml:/opt/bitnami/jmx-exporter/config.yml
+  #   environment:
+  #     JMX_EXPORTER_HOST: kafka-1
+  #     JMX_EXPORTER_PORT: 9105
+  #   networks:
+  #     - kafka-network
+
+  # jmx-exporter-kafka-2:
+  #   image: bitnami/jmx-exporter:latest
+  #   container_name: jmx-exporter-kafka-2
+  #   ports:
+  #     - "5556:5556"
+  #   volumes:
+  #   - ./jmx/kafka-jmx.yml:/opt/bitnami/jmx-exporter/config.yml
+  #   environment:
+  #     JMX_EXPORTER_HOST: kafka-2
+  #     JMX_EXPORTER_PORT: 9106
+  #   networks:
+  #     - kafka-network
+
+  # jmx-exporter-kafka-3:
+  #   image: bitnami/jmx-exporter:latest
+  #   container_name: jmx-exporter-kafka-3
+  #   ports:
+  #     - "5556:5556"
+  #   volumes:
+  #     - ./jmx/kafka-jmx.yml:/opt/bitnami/jmx-exporter/config.yml
+  #   environment:
+  #     JMX_EXPORTER_HOST: kafka-3
+  #     JMX_EXPORTER_PORT: 9107
+  #   networks:
+  #     - kafka-network
+
+
+  # Kafka - Broker 1
+  kafka-1:
+    image: "confluentinc/cp-kafka:7.6.1"
+    container_name: kafka-1
+    hostname: kafka-1
+    ports:
+      - "9096:9096"   # external listener
+      # - "9105:9105"   # jmx exporter
+      - "29096:29096"   # internal listener broker to broker 
+      - "7071:7071"  #metrics port
+    environment:
+      KAFKA_NODE_ID: 4
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29096,PLAINTEXT_HOST://0.0.0.0:9096
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29096,PLAINTEXT_HOST://192.168.51.132:9096
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      # KAFKA_JMX_PORT: 9105
+      # KAFKA_JMX_HOSTNAME: 192.168.51.132
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7071:/opt/jmx/kafka-jmx-config.yml"
+    volumes:
+        - kafka1_data:/var/lib/kafka/data
+        - ./jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+        - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+
+    networks:
+      - kafka-network
+    restart: always
+
+  # Kafka - Broker 2
+  kafka-2:
+    image: "confluentinc/cp-kafka:7.6.1"
+    container_name: kafka-2
+    hostname: kafka-2
+    ports:
+      - "9097:9097"
+      # - "9106:9106"
+      - "29097:29097"
+      - "7072:7071"  #metrics port
+    environment:
+      KAFKA_NODE_ID: 5
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29097,PLAINTEXT_HOST://0.0.0.0:9097
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29097,PLAINTEXT_HOST://192.168.51.132:9097
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      # KAFKA_JMX_PORT: 9106
+      # KAFKA_JMX_HOSTNAME: 192.168.51.132
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7072:/opt/jmx/kafka-jmx-config.yml"
+
+    volumes:
+        - kafka2_data:/var/lib/kafka/data
+        - ./jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+        - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+    networks:
+      - kafka-network
+    restart: always
+
+  # Kafka - Broker 3
+  kafka-3:
+    image: "confluentinc/cp-kafka:7.6.1"
+    container_name: kafka-3
+    hostname: kafka-3
+    ports:
+      - "9098:9098"
+      # - "9107:9107"
+      - "29098:29098"
+      - "7073:7071"  #metrics port
+    environment:
+      KAFKA_NODE_ID: 6
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29098,PLAINTEXT_HOST://0.0.0.0:9098
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:29098,PLAINTEXT_HOST://192.168.51.132:9098
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      # KAFKA_JMX_PORT: 9107
+      # KAFKA_JMX_HOSTNAME: 192.168.51.132
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7073:/opt/jmx/kafka-jmx-config.yml"
+
+    volumes:
+        - kafka3_data:/var/lib/kafka/data
+        - ./jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+        - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+    networks:
+      - kafka-network
+    restart: always
+    
+networks:
+  kafka-network:
+    name: kafka-network
+    external: true
+
+volumes:
+  clickhouse_data:
+  grafana_data:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:

@@ -1,0 +1,104 @@
+services:
+  # Controller Node 1
+  controller-1:
+    image: "confluentinc/cp-kafka:7.6.1"
+    container_name: controller-1
+    hostname: controller-1
+    ports:
+      - "9093:9093"
+      - "7081:7071"  #metrics port   
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: CONTROLLER://0.0.0.0:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7081:/opt/jmx/kafka-jmx-config.yml"
+
+
+    volumes:
+      - controller1_data:/var/lib/kafka/data
+      - ../jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+      - ../jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+
+    networks:
+      - kafka-network
+    restart: always
+
+  # Controller Node 2
+  controller-2:
+    image: "confluentinc/cp-kafka:7.6.1"
+    container_name: controller-2
+    hostname: controller-2
+    ports:
+      - "9094:9094"
+      - "7082:7071"  #metrics port
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: CONTROLLER://0.0.0.0:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7082:/opt/jmx/kafka-jmx-config.yml"
+    volumes:
+      - controller2_data:/var/lib/kafka/data
+      - ../jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+      - ../jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+    networks:
+      - kafka-network
+    restart: always
+
+  # Controller Node 3
+  controller-3:
+    image: "confluentinc/cp-kafka:7.6.1"
+    container_name: controller-3
+    hostname: controller-3
+    ports:
+      - "9095:9095"
+      - "7083:7071"  #metrics port
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: CONTROLLER://0.0.0.0:9095
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7083:/opt/jmx/kafka-jmx-config.yml"
+    volumes:
+      - controller3_data:/var/lib/kafka/data
+      - ../jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+      - ../jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+    networks:
+      - kafka-network
+    restart: always
+
+networks:
+  kafka-network:
+    driver: bridge
+    name: kafka-network
+    external: true
+
+volumes:
+  controller1_data:
+  controller2_data:
+  controller3_data:
