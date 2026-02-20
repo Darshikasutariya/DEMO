@@ -6,7 +6,7 @@ services:
     hostname: controller-1
     ports:
       - "9093:9093"
-      - "7081:7071"  #metrics port   
+      - "7081:7081"  #metrics port   
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
@@ -39,7 +39,7 @@ services:
     hostname: controller-2
     ports:
       - "9094:9094"
-      - "7082:7071"  #metrics port
+      - "7082:7082"  #metrics port
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
@@ -69,7 +69,7 @@ services:
     hostname: controller-3
     ports:
       - "9095:9095"
-      - "7083:7071"  #metrics port
+      - "7083:7083"  #metrics port
     environment:
       KAFKA_NODE_ID: 3
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
@@ -96,7 +96,6 @@ networks:
   kafka-network:
     driver: bridge
     name: kafka-network
-    external: true
 
 volumes:
   controller1_data:
