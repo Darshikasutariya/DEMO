@@ -113,7 +113,7 @@ services:
     ports:
       - "9097:9097"
       - "29093:29093"
-      # - "7072:7072"  #metrics port
+   #   - "7072:7072"  #metrics port
       - "9106:9106"
     environment:
       KAFKA_NODE_ID: 5
@@ -196,7 +196,7 @@ services:
 networks:
   kafka-network:
     name: kafka-network
-    external: true
+    driver: bridge
 
 volumes:
   clickhouse_data:
