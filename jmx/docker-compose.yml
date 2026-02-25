@@ -1,0 +1,44 @@
+services:
+
+  kafka-1-jmx:
+    image: bitnami/jmx-exporter:latest
+    container_name: kafka-1-jmx
+    ports:
+      - "7071:5556"
+    environment:
+      - JMX_SERVICE_URL=service:jmx:rmi:///jndi/rmi://kafka-1:9101/jmxrmi
+      - JMX_EXPORTER_CONFIG=/config.yml
+    volumes:
+      - ./kafka-jmx-config.yml:/config.yml
+    networks:
+      - kafka-network
+
+  kafka-2-jmx:
+    image: bitnami/jmx-exporter:latest
+    container_name: kafka-2-jmx
+    ports:
+      - "7072:5556"
+    environment:
+      - JMX_SERVICE_URL=service:jmx:rmi:///jndi/rmi://kafka-2:9102/jmxrmi
+      - JMX_EXPORTER_CONFIG=/config.yml
+    volumes:
+      - ./kafka-jmx-config.yml:/config.yml
+    networks:
+      - kafka-network
+
+  kafka-3-jmx:
+    image: bitnami/jmx-exporter:latest
+    container_name: kafka-3-jmx
+    ports:
+      - "7073:5556"
+    environment:
+      - JMX_SERVICE_URL=service:jmx:rmi:///jndi/rmi://kafka-3:9103/jmxrmi
+      - JMX_EXPORTER_CONFIG=/config.yml
+    volumes:
+      - ./kafka-jmx-config.yml:/config.yml
+    networks:
+      - kafka-network
+
+networks:
+  kafka-network:
+    external: true

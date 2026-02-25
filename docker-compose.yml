@@ -66,10 +66,26 @@ services:
     ports:
       - "9096:9096"   # external listener
       - "29092:29092"   # internal listener broker to broker 
-      - "7071:7071"  #metrics port
+      # - "7071:7071"  #metrics port
+      - "9105:9105" 
+
     environment:
       KAFKA_NODE_ID: 4
       KAFKA_PROCESS_ROLES: broker
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 1 
+      KAFKA_JMX_PORT: 9105
+      KAFKA_JMX_HOSTNAME: localhost
+      # KAFKA_OPTS: >
+      #   -Dcom.sun.management.jmxremote=true
+      #   -Dcom.sun.management.jmxremote.authenticate=false
+      #   -Dcom.sun.management.jmxremote.ssl=false
+      #   -Dcom.sun.management.jmxremote.local.only=false
+      #   -Djava.rmi.server.hostname=kafka-1
+      #   -Dcom.sun.management.jmxremote.port=9101
+      #   -Dcom.sun.management.jmxremote.rmi.port=9101
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9096
@@ -77,17 +93,13 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_MIN_INSYNC_REPLICAS: 1 
       KAFKA_LOG_DIRS: /var/lib/kafka/data
-      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7071:/opt/jmx/kafka-jmx-config.yml"
+      # KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7071:/opt/jmx/kafka-jmx-config.yml"
 
     volumes:
         - kafka1_data:/var/lib/kafka/data
-        - ./jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
-        - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+        # - ./jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+        # - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
 
     networks:
       - kafka-network
@@ -101,10 +113,23 @@ services:
     ports:
       - "9097:9097"
       - "29093:29093"
-      - "7072:7071"  #metrics port
+      # - "7072:7072"  #metrics port
+      - "9106:9106"
     environment:
       KAFKA_NODE_ID: 5
       KAFKA_PROCESS_ROLES: broker
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 1 
+      KAFKA_JMX_PORT: 9106
+      KAFKA_JMX_HOSTNAME: localhost
+      # KAFKA_JMX_OPTS: >
+      #   -Dcom.sun.management.jmxremote
+      #   -Dcom.sun.management.jmxremote.authenticate=false
+      #   -Dcom.sun.management.jmxremote.ssl=false
+      #   -Djava.rmi.server.hostname=kafka-1
+      #   -Dcom.sun.management.jmxremote.rmi.port=9102
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9097
@@ -112,18 +137,14 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_MIN_INSYNC_REPLICAS: 1 
       KAFKA_LOG_DIRS: /var/lib/kafka/data
-      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7072:/opt/jmx/kafka-jmx-config.yml"
+      # KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7072:/opt/jmx/kafka-jmx-config.yml"
 
 
     volumes:
         - kafka2_data:/var/lib/kafka/data
-        - ./jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
-        - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+        # - ./jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+        # - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
     networks:
       - kafka-network
     restart: always
@@ -136,10 +157,23 @@ services:
     ports:
       - "9098:9098"
       - "29094:29094"
-      - "7073:7071"  #metrics port
+      # - "7073:7073"  #metrics port
+      - "9107:9107"
     environment:
       KAFKA_NODE_ID: 6
       KAFKA_PROCESS_ROLES: broker
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_JMX_PORT: 9107
+      KAFKA_JMX_HOSTNAME: localhost
+      # # KAFKA_JMX_OPTS: >
+      # #   -Dcom.sun.management.jmxremote
+      # #   -Dcom.sun.management.jmxremote.authenticate=false
+      # #   -Dcom.sun.management.jmxremote.ssl=false
+      # #   -Djava.rmi.server.hostname=kafka-1
+      # #   -Dcom.sun.management.jmxremote.rmi.port=9103
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9094,3@controller-3:9095
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29094,PLAINTEXT_HOST://0.0.0.0:9098
@@ -147,18 +181,14 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_MIN_INSYNC_REPLICAS: 1
       KAFKA_LOG_DIRS: /var/lib/kafka/data
-      KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7073:/opt/jmx/kafka-jmx-config.yml"
+      # KAFKA_OPTS: "-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=7073:/opt/jmx/kafka-jmx-config.yml"
 
 
     volumes:
         - kafka3_data:/var/lib/kafka/data
-        - ./jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
-        - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
+        # - ./jmx/jmx_prometheus_javaagent.jar:/opt/jmx/jmx_prometheus_javaagent.jar
+        # - ./jmx/kafka-jmx-config.yml:/opt/jmx/kafka-jmx-config.yml
     networks:
       - kafka-network
     restart: always
